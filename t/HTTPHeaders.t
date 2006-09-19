@@ -6,7 +6,7 @@
 # change 'tests => 2' to 'tests => last_test_to_print';
 
 #die('update use test more line');
-use Test::More tests => 28;
+use Test::More tests => 31;
 BEGIN { use_ok('Perlbal::XS::HTTPHeaders') };
 
 

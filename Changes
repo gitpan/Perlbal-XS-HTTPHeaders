@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTPHeaders.  See README for info.
 
+0.19  Tue Sep 19 07:54:51 UTC 2006
+    - fix number of tests from 28 to 31 to enable successfull make test
+
+0.18  Wed Jul 20 18:35:51 UTC 2005
+    - allow setting the status code and text
+    - add dependency on Perlbal and Perlbal::HTTPHeaders
+
 0.17  Tue Jul 19 13:41:23 PDT 2005
     - library now inherits from Perlbal::HTTPHeaders
     - removed debugging code
