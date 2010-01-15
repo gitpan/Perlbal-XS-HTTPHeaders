@@ -105,6 +105,7 @@ HTTPHeaders::HTTPHeaders() {
     method = 0;
     sv_uri = NULL;
     sv_firstLine = NULL;
+    sv_methodString = NULL;
     hdrs = NULL;
     hdrtail = NULL;
 }
@@ -115,6 +116,9 @@ HTTPHeaders::~HTTPHeaders() {
     }
     if (sv_firstLine) {
         SvREFCNT_dec(sv_firstLine);
+    }
+    if (sv_methodString) {
+        SvREFCNT_dec(sv_methodString);
     }
 
     /* free header structs we're using */
@@ -203,8 +207,18 @@ int HTTPHeaders::parseHeaders(SV *headers) {
                 ptr += 7;
                 method = M_DELETE;
             } else {
-                // nothing, error
-                return 0;
+                pptr = ptr;
+                len = skip_to_space(&ptr);
+                if (len) {
+                    sv_methodString = newSVpvn(pptr, len);
+                    if (!sv_methodString)
+                        return 0;
+                } else {
+                    // nothing, error
+                    return 0;
+                }
+
+                skip_spaces(&ptr);
             }
 
             // now we need to read in the URI
@@ -502,6 +516,14 @@ int HTTPHeaders::getMethod() {
     return method;
 }
 
+SV *HTTPHeaders::getMethodString() {
+    if (sv_methodString) {
+        SvREFCNT_inc(sv_methodString);
+        return sv_methodString;
+    } else
+        return &PL_sv_undef;
+}
+
 int HTTPHeaders::getStatusCode() {
     return statusCode;
 }
@@ -524,6 +546,79 @@ SV *HTTPHeaders::getURI() {
         return sv_uri;
     } else
         return &PL_sv_undef;
+}
+
+SV *HTTPHeaders::getHeadersList() {
+    if (hdrs) {
+        AV *header_names = (AV*) sv_2mortal((SV*)newAV());
+        for (Header *cur = hdrs; cur; cur = cur->next) {
+            av_push(header_names, newSVpv(cur->key, cur->keylen));
+        }
+        return newRV((SV*)header_names);
+    } else
+        return &PL_sv_undef;
+}
+
+SV *HTTPHeaders::setURI(char *uri) {
+    int urilen = uri ? strlen(uri) : 0;
+    SV *temp_uri = newSVpvn(uri, urilen);
+
+    if (!temp_uri)
+        return &PL_sv_undef;
+
+    // Select which method we're using and turn it into a string
+    const char *methodstr;
+
+    switch(method) {
+        case M_GET:
+            methodstr = "GET";
+            break;
+        case M_POST:
+            methodstr = "POST";
+            break;
+        case M_OPTIONS:
+            methodstr = "OPTIONS";
+            break;
+        case M_PUT:
+            methodstr = "PUT";
+            break;
+        case M_DELETE:
+            methodstr = "DELETE";
+            break;
+        case M_HEAD:
+            methodstr = "HEAD";
+            break;
+        default:
+            if (sv_methodString) {
+                methodstr = SvPV_nolen(sv_methodString);
+                break;
+            } else
+                return &PL_sv_undef;
+    }
+
+    // Reconstruct the first line
+    SV *temp_firstLine;
+    if (versionNumber)
+        temp_firstLine = newSVpvf("%s %s HTTP/%d.%d",
+                                  methodstr, uri, int(versionNumber / 1000), versionNumber % 1000);
+    else
+        temp_firstLine = newSVpvf("%s %s",
+                                  methodstr, uri);
+
+    // Overwrite the SVs we were preparing
+    if (sv_uri)
+        SvREFCNT_dec(sv_uri);
+
+    sv_uri = temp_uri;
+
+    if (sv_firstLine)
+        SvREFCNT_dec(sv_firstLine);
+
+    sv_firstLine = temp_firstLine;
+
+    // Increment refcount and put sv_uri on the return stack to indicate success.
+    SvREFCNT_inc(sv_uri);
+    return sv_uri;
 }
 
 void HTTPHeaders::setStatusCode(int code) {

@@ -1,5 +1,11 @@
 Revision history for Perl extension HTTPHeaders.  See README for info.
 
+0.20  Thu Jan 14 22:08:00 PDT 2010
+
+    - allow module to be 'enabled' multiple times without error
+    - allow all methods, but only accelerate some of them.
+    - add setter for uri field, and test
+
 0.19  Tue Sep 19 07:54:51 UTC 2006
     - fix number of tests from 28 to 31 to enable successfull make test
 

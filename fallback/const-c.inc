@@ -37,15 +37,15 @@ constant (pTHX_ const char *name, STRLEN len, IV *iv_return) {
 use ExtUtils::Constant qw (constant_types C_constant XS_constant);
 
 my $types = {map {($_, 1)} qw(IV)};
-my @names = (qw(H_REQUEST H_RESPONSE MAX_HEADER_LENGTH M_DELETE M_GET M_OPTIONS
-	       M_POST M_PUT));
+my @names = (qw(H_REQUEST H_RESPONSE M_DELETE M_GET M_HEAD M_OPTIONS M_POST
+	       M_PUT));
 
 print constant_types(); # macro defs
-foreach (C_constant ("HTTPHeaders", 'constant', 'IV', $types, undef, 3, @names) ) {
+foreach (C_constant ("Perlbal::XS::HTTPHeaders", 'constant', 'IV', $types, undef, 3, @names) ) {
     print $_, "\n"; # C constant subs
 }
 print "#### XS Section:\n";
-print XS_constant ("HTTPHeaders", $types);
+print XS_constant ("Perlbal::XS::HTTPHeaders", $types);
 __END__
    */
 
@@ -80,13 +80,32 @@ __END__
     }
     break;
   case 6:
-    if (memEQ(name, "M_POST", 6)) {
-#ifdef M_POST
-      *iv_return = M_POST;
-      return PERL_constant_ISIV;
+    /* Names all of length 6.  */
+    /* M_HEAD M_POST */
+    /* Offset 2 gives the best switch position.  */
+    switch (name[2]) {
+    case 'H':
+      if (memEQ(name, "M_HEAD", 6)) {
+      /*                 ^         */
+#ifdef M_HEAD
+        *iv_return = M_HEAD;
+        return PERL_constant_ISIV;
 #else
-      return PERL_constant_NOTDEF;
+        return PERL_constant_NOTDEF;
 #endif
+      }
+      break;
+    case 'P':
+      if (memEQ(name, "M_POST", 6)) {
+      /*                 ^         */
+#ifdef M_POST
+        *iv_return = M_POST;
+        return PERL_constant_ISIV;
+#else
+        return PERL_constant_NOTDEF;
+#endif
+      }
+      break;
     }
     break;
   case 8:
@@ -132,16 +151,6 @@ __END__
     if (memEQ(name, "H_RESPONSE", 10)) {
 #ifdef H_RESPONSE
       *iv_return = H_RESPONSE;
-      return PERL_constant_ISIV;
-#else
-      return PERL_constant_NOTDEF;
-#endif
-    }
-    break;
-  case 17:
-    if (memEQ(name, "MAX_HEADER_LENGTH", 17)) {
-#ifdef MAX_HEADER_LENGTH
-      *iv_return = MAX_HEADER_LENGTH;
       return PERL_constant_ISIV;
 #else
       return PERL_constant_NOTDEF;

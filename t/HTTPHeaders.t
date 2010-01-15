@@ -6,7 +6,7 @@
 # change 'tests => 2' to 'tests => last_test_to_print';
 
 #die('update use test more line');
-use Test::More tests => 31;
+use Test::More tests => 40;
 BEGIN { use_ok('Perlbal::XS::HTTPHeaders') };
 
 
@@ -58,6 +58,23 @@ isnt($hdr->getReconstructed(), $reqstr, 'request 1 reconstruction (3)');
 $hdr->setHeader('Host', '10.0.1.2');
 is($hdr->getHeader('Host'), "10.0.1.2", 'header retrieval 8');
 is($hdr->getReconstructed(), $reqstr, 'request 1 reconstruction (4)');
+
+
+isnt($hdr->getURI(), "/foo.txt", "Haven't set the uri yet");
+unlike($hdr->to_string(), qr{^GET /foo\.txt}, "First line doesn't contain foo.txt");
+$hdr->setURI('/foo.txt');
+is($hdr->getURI(), "/foo.txt", "We set the uri now");
+like($hdr->to_string(), qr{^GET /foo\.txt}, "First line does contain foo.txt");
+
+isnt($hdr->request_uri(), "/bar.txt", "Haven't set the uri yet");
+unlike($hdr->to_string(), qr{^GET /bar\.txt}, "First line doesn't contain bar.txt");
+$hdr->set_request_uri('/bar.txt');
+is($hdr->request_uri(), "/bar.txt", "We set the uri now");
+like($hdr->to_string(), qr{^GET /bar\.txt}, "First line does contain bar.txt");
+
+my $headers_list = $hdr->headers_list;
+is_deeply([sort @$headers_list], [qw/ Accept Accept-Encoding Accept-Language Connection Cookie Host Referer User-Agent /], 'headers_list');
+
 
 ################################################################################
 ## and yet some more
@@ -114,3 +131,5 @@ ok($hdr->getStatusCode() == 404, "code is 404");
 $hdr->code(200, undef);
 ok($hdr->getStatusCode() == 200, "code changed to 200");
 like($hdr->to_string, qr/200 OK/, "firstLine set fine");
+
+# vim: filetype=perl

@@ -48,7 +48,7 @@ our @EXPORT = qw(
     M_HEAD
 );
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -125,13 +125,14 @@ sub clone {
 my @subs = qw{
     new new_response DESTROY getReconstructed getHeader setHeader
     getMethod getStatusCode getVersionNumber setVersionNumber isRequest
-    isResponse setStatusCode getURI header to_string to_string_ref
-    code request_method request_uri response_code res_keep_alive
-    req_keep_alive set_version content_length clone http_code_english
+    isResponse setStatusCode getURI setURI header to_string to_string_ref
+    code request_method request_uri headers_list set_request_uri response_code
+    res_keep_alive req_keep_alive set_version content_length clone
+    http_code_english
 };
 
 sub enable {
-    return if $Enabled;
+    return 1 if $Enabled;
     $Enabled = 1;
     *Perlbal::HTTPHeaders::new = *Perlbal::XS::HTTPHeaders::new;
     *Perlbal::HTTPHeaders::new_response = *Perlbal::XS::HTTPHeaders::new_response;

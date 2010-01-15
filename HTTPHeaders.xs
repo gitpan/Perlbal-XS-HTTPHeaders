@@ -83,6 +83,10 @@ HTTPHeaders::setCodeText( code, codetext )
 SV *
 HTTPHeaders::getURI()
 
+SV *
+HTTPHeaders::setURI( uri )
+    char *uri
+
 ################################################################################
 ## setup functions that call through to our native functions; this is the
 ## interface definition that Perlbal expects to use when we're a replacement
@@ -145,7 +149,7 @@ HTTPHeaders::request_method()
                 RETVAL = newSVpvn("DELETE", 6);
                 break;
             default:
-                XSRETURN_UNDEF;
+                RETVAL = THIS->getMethodString();
         }
     OUTPUT:
         RETVAL
@@ -154,6 +158,21 @@ SV *
 HTTPHeaders::request_uri()
     CODE:
         RETVAL = THIS->getURI();
+    OUTPUT:
+        RETVAL
+
+SV *
+HTTPHeaders::headers_list()
+    CODE:
+        RETVAL = THIS->getHeadersList();
+    OUTPUT:
+        RETVAL
+
+SV *
+HTTPHeaders::set_request_uri( uri = NULL )
+    char *uri
+    CODE:
+        RETVAL = THIS->setURI(uri);
     OUTPUT:
         RETVAL
 

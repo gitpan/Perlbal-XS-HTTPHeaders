@@ -43,7 +43,7 @@ class HTTPHeaders {
 
     private:
         int versionNumber, statusCode, headersType, method;
-        SV *sv_uri, *sv_firstLine;
+        SV *sv_uri, *sv_firstLine, *sv_methodString;
 
         Header *hdrs, *hdrtail;
 
@@ -65,6 +65,7 @@ class HTTPHeaders {
 
         /* extra getters that we use to speed stuff up */
         int getMethod();
+        SV *getMethodString();
         int getStatusCode();
         void setStatusCode(int code);
         void setVersionNumber(int version);
@@ -73,6 +74,8 @@ class HTTPHeaders {
         bool isResponse();
         void setCodeText(int code, char *codetext);
         SV *getURI();
+        SV *setURI(char *uri);
+        SV *getHeadersList();
         
 };
 
